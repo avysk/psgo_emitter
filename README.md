@@ -2,11 +2,7 @@
 
 # Requirements
 
-* Unless you are using pre-build executable:
-
-        * Python 3
-
-        * `asciimatics` package
+* Unless you are using pre-build executable, you'll need Python 3 and `asciimatics` package.
 
 * I recommend to use in a console window some font with good unicode support; "DejaVu Sans Mono" is what I am using (but see `d` below in "Keybindings").
 
