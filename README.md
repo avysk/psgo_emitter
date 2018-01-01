@@ -6,6 +6,14 @@
 
 * I recommend to use in a console window some font with good unicode support; "DejaVu Sans Mono" is what I am using (but see `d` below in "Keybindings").
 
+* LaTeX and `psgo` package to use the resulting files.
+
+# Limitations and/or TODOs
+
+* Only positions in the bottom left corner are supported.
+
+* Nothing like numbered moves, marks, etc. Just black and white stones.
+
 # Usage
 
 Run the program from a console window.
