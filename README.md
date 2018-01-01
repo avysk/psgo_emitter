@@ -1,15 +1,22 @@
 `psgo_emitter` is a (Windows) console utility to create go diagrams for go life-and-death problems (tsumego).
 
-= Usage =
+# Requirements
 
-Run the program from console window. I recommend to use the font with good unicode support; "DejaVu Sans Mono" is what I am using (but see `d` below in "Keybindings").
+* Unless you are using pre-build executable:
+        * Python 3
+        * `asciimatics` package
+* I recommend to use in a console window some font with good unicode support; "DejaVu Sans Mono" is what I am using (but see `d` below in "Keybindings").
+
+# Usage
+
+Run the program from a console window.
 
 The program accepts two optional arguments:
 
 * the common part of file names to write (`-[sequential number].tex` will be added to it. By default the files will be written in the current directory, with the names `YYYY-mm-dd-HH-MM-problem-[sequential number].tex` where `YYYY-mm-dd-HH-MM` is the date and time when the program was started.
 * the first sequential number to use; `1` by default.
 
-= Keybindings =
+# Keybindings
 
 * `d` to switch between unicode and ascii display
 * `C` to clear the board
