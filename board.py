@@ -172,7 +172,7 @@ class Board():
         sol = self._solutions[self._solution_idx]
         point = (self._cursor_column, self._cursor_row)
         if point in sol:
-            sol['colour'] = colour
+            sol[point]['colour'] = colour
 
     def swap_solution_colour(self):
         """Swap colour of the solution stone under the cursor,
