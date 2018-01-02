@@ -29,6 +29,7 @@ class Renderer():
 
         self._flash = ()
         self._title = ""
+        self._solution_idx = None
 
     def _update_borders(self):
         self._borders = {'left': self._sc_col(-1) - 1,
@@ -60,14 +61,29 @@ class Renderer():
         self._screen.print_at(self._ctbl[piece], *scr_coord,
                               Screen.COLOUR_WHITE, Screen.A_BOLD)
 
+    def _is_stone(self, thing):
+        return thing == 'white' or thing == 'black'
+
+    def _is_numbered(self, thing):
+        return isinstance(thing, dict) and 'number' in thing
+
+    def _pr_numbered(self, thing, scr_coord):
+        scr_colour = {'white': Screen.COLOUR_YELLOW,
+                      'black': Screen.COLOUR_BLUE}[thing['colour']]
+        # No configurable display for numbers yet. Fix!
+        self._screen.print_at(thing['number'], *scr_coord,
+                              scr_colour, Screen.A_BOLD)
+
     def _disp(self, point, thing):
         self._update_ctbl()
         scr_coord = self._to_scr(*point)
-        if thing:
+        if self._is_stone(thing):
             self._pr(thing, scr_coord)
+        elif self._is_numbered(thing):
+            self._pr_numbered(thing, scr_coord)
         elif self._is_hoshi(*point):
             self._bd('hoshi', scr_coord)
-        else:
+        elif not thing:
             self._pr('empty', scr_coord)
 
     def _render_cursor(self, cur_pos):
@@ -75,9 +91,21 @@ class Renderer():
         self._pr('cur_left', (cur_x - 1, cur_y))
         self._pr('cur_right', (cur_x + 1, cur_y))
 
+    def begin(self):
+        """Start rendering."""
+        self._screen.clear()
+
+    def end(self):
+        """End rendering."""
+        self._screen.refresh()
+
     def set_title(self, title):
         """Set title."""
         self._title = title
+
+    def set_solution_index(self, idx):
+        """Set variation line."""
+        self._solution_idx = idx
 
     def info_flash(self, message):
         """Show info flash at next status render."""
@@ -109,6 +137,10 @@ class Renderer():
 
         self._screen.print_at(self._title, 0, 0,
                               Screen.COLOUR_BLUE, Screen.A_BOLD)
+        if self._solution_idx is not None:
+            line = "[Solution: {}]".format(self._solution_idx + 1)
+            self._screen.print_at(line, 0, 1,
+                                  Screen.COLOUR_RED, Screen.A_BOLD)
 
     def render_board(self, board):
         """Render stuff to the screen"""

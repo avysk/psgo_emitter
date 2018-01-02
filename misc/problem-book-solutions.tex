@@ -1,0 +1,35 @@
+% example LaTeX code to use psgo_emitter-generated files
+% save the problem files in problems/ subdirectory 
+
+\documentclass[paper=a5,BCOR=1in]{scrbook}
+\usepackage{psgo}
+
+\newcounter{ProblemNumber}
+
+\newcommand\solution[1]{%
+  \refstepcounter{ProblemNumber}
+  \foreach \j in {1, 2, ..., 9} {%
+    \edef\SolutionName{problems/problem-#1-sol-\j}%
+    \IfFileExists{\SolutionName}{%
+      \begin{minipage}[b]{0.49\textwidth}
+        \input{\SolutionName}\quad%
+        \center{\textbf{\theProblemNumber.} {solution \j.}}%
+      \end{minipage}%
+      \bigskip
+    }
+  }
+}
+
+\setgounit{0.4cm}
+
+\begin{document}
+\setlength{\parindent}{0pt}
+
+\foreach \i in {1, 2, ..., 999} {%
+  \edef\FileName{problems/problem-\i}%
+  \IfFileExists{\FileName}{%
+    \solution{\i}
+  }
+}
+
+\end{document} 
