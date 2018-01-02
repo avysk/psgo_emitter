@@ -4,7 +4,7 @@
 
 * Unless you are using pre-built executable, you'll need Python 3 and `asciimatics` package.
 
-* I recommend to use in a console window some font with good unicode support; "DejaVu Sans Mono" is what I am using (but see `d` below in "Keybindings").
+* I recommend to use in a console window some font with good unicode support; "DejaVu Sans Mono" is what I am using (but search for "ascii").
 
 * LaTeX and [psgo](https://ctan.org/tex-archive/graphics/pstricks/contrib/psgo/) package to use the resulting files. I recommend to use [MiKTeX distribution](https://miktex.org) unless you know what you are doing.
 
