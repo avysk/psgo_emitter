@@ -2,17 +2,21 @@
 
 # Requirements
 
-* Unless you are using pre-build executable, you'll need Python 3 and `asciimatics` package.
+* Unless you are using pre-built executable, you'll need Python 3 and `asciimatics` package.
 
 * I recommend to use in a console window some font with good unicode support; "DejaVu Sans Mono" is what I am using (but see `d` below in "Keybindings").
 
-* LaTeX and `psgo` package to use the resulting files.
+* LaTeX and [psgo](https://ctan.org/tex-archive/graphics/pstricks/contrib/psgo/) package to use the resulting files. I recommend to use [MiKTeX distribution](https://miktex.org) unless you know what you are doing.
 
 # Limitations and/or TODOs
 
+* NO UNDO
+
 * Only positions in the bottom left corner are supported.
 
-* Nothing like numbered moves, marks, etc. Just black and white stones.
+* Nothing like marks, etc. Just black and white stones. Numbered stones in solution diagrams.
+
+* Maximum 9 numbered stones per solution diagram.
 
 # Examples of the result
 
