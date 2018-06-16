@@ -1,14 +1,14 @@
 % example LaTeX code to use psgo_emitter-generated files
 % save the problem files in problems/ subdirectory 
 
-\documentclass[paper=a5,BCOR=1in]{scrbook}
+\documentclass[paper=a5,DIV=14]{scrbook}
 \usepackage{psgo}
 
 \newcounter{ProblemNumber}
 \newcommand\problem[1]{%
   \refstepcounter{ProblemNumber}
   \begin{minipage}[b]{0.49\textwidth}
-    \input{#1}\quad%
+    \center{\input{#1}}
     \center{\textbf{\Large \theProblemNumber.}}%
   \end{minipage}%
   \bigskip

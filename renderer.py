@@ -65,25 +65,26 @@ class Renderer():
         return thing == 'white' or thing == 'black'
 
     def _is_numbered(self, thing):
-        return isinstance(thing, dict) and 'number' in thing
+        return 'label' in thing
 
-    def _pr_numbered(self, thing, scr_coord):
+    def _pr_labeled(self, stone, scr_coord):
         scr_colour = {'white': Screen.COLOUR_YELLOW,
-                      'black': Screen.COLOUR_BLUE}[thing['colour']]
+                      'black': Screen.COLOUR_BLUE}[stone.colour]
         # No configurable display for numbers yet. Fix!
-        self._screen.print_at(thing['number'], *scr_coord,
+        self._screen.print_at(stone.label, *scr_coord,
                               scr_colour, Screen.A_BOLD)
 
-    def _disp(self, point, thing):
+    def _disp(self, point, stone):
         self._update_ctbl()
         scr_coord = self._to_scr(*point)
-        if self._is_stone(thing):
-            self._pr(thing, scr_coord)
-        elif self._is_numbered(thing):
-            self._pr_numbered(thing, scr_coord)
+        if stone:
+            if stone.label:
+                self._pr_labeled(stone, scr_coord)
+            else:
+                self._pr(stone.colour, scr_coord)
         elif self._is_hoshi(*point):
             self._bd('hoshi', scr_coord)
-        elif not thing:
+        else:
             self._pr('empty', scr_coord)
 
     def _render_cursor(self, cur_pos):

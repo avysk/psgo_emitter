@@ -142,7 +142,7 @@ To change:
 
 ### Clipboard
 
-To copy the TeX code for *the main position only* to the Windows clipboard, press `c`.
+To copy the TeX code for the current solution branch to the Windows clipboard, press `c`.
 
 ### Write files
 

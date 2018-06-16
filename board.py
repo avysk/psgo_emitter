@@ -1,8 +1,16 @@
 """Board model."""
 
 from copy import deepcopy
-
 from operator import itemgetter
+
+import export_support as xp
+
+from cursor import Cursor
+from stone import Stone
+
+
+_MIN_CORNER_SIZE = 4
+_MIN_BORDER = 1
 
 
 class Board():
@@ -10,194 +18,160 @@ class Board():
     Entity that stores position and can render it to screen
     or to TeX string.
     """
-    def __init__(self):
-        self._board = {}
+    def __init__(self, board=None, solutions=None):
+        self._board = board or {}
         self._solution_idx = None
-        self._solutions = []
-        self._cursor_row = 0
-        self._cursor_column = 0
-        self._movers = {'left': self._cur_left,
-                        'right': self._cur_right,
-                        'up': self._cur_up,
-                        'down': self._cur_down}
+        self._solutions = solutions or []
+        self._cursor = Cursor()
+
+    # Cursor {{{1
 
     def move_cursor(self, where):
         """Move cursor left, right, up or down."""
-        self._movers[where]()
+        self._cursor.move(where)
 
-    def _cur_left(self):
-        self._cursor_column -= 1
-        if self._cursor_column < 0:
-            self._cursor_column = 0
+    def get_cursor(self):
+        """Return cursor coordinates."""
+        return self._cursor.point
 
-    def _cur_right(self):
-        self._cursor_column += 1
-        if self._cursor_column > 18:
-            self._cursor_column = 18
+    # }}}1
 
-    def _cur_down(self):
-        self._cursor_row -= 1
-        if self._cursor_row < 0:
-            self._cursor_row = 0
+    # TeX support {{{1
 
-    def _cur_up(self):
-        self._cursor_row += 1
-        if self._cursor_row > 18:
-            self._cursor_row = 18
+    def _get_psgo_prelude(self, solution_index=None):
+        point = (self._get_dim(0, False, solution_index) + 1,
+                 self._get_dim(1, False, solution_index) + 1)
+        return xp.psgo_prelude(point)
 
-    def to_tex(self):
-        """Convert board position to TeX code."""
-        start = r"\begin{psgopartialboard}{(1,1)("
-        start += str(self.get_width(use_cursor=False) + 1)
-        start += r","
-        start += str(self.get_height(use_cursor=False) + 1)
-        start += r")}"
-        result = [start]
-        for (p_x, p_y), colour in self._board.items():
-            line = ' ' * 8
-            line += r"\stone{" + colour + r"}{"
-            # no 'i', should jump to j!
-            if p_x >= ord('i') - ord('a'):
-                p_x += 1
-            line += chr(ord('a') + p_x)
-            line += r"}{"
-            line += str(p_y + 1)
-            line += r"}"
-            result.append(line)
-        result.append(r"\end{psgopartialboard}")
+    def _objects_to_tex(self, objects, solution_index=None):
+
+        result = [self._get_psgo_prelude(solution_index=solution_index)]
+        for point, stone in objects.items():
+            result.append(xp.stone_to_tex(stone, point))
+
+        result.append(xp.psgo_postlude())
+
         return '\n'.join(result)
+
+    def to_tex(self, main_only=True):
+        """Convert the board position to TeX code.
+        If main_only is True, only the main position is used.
+        Otherwise, the current solution branch is used."""
+        if main_only:
+            objects = self._board
+        else:
+            objects = self.get_items()
+        return self._objects_to_tex(objects)
 
     def solutions_to_tex(self):
         """Convert solutions to the list of TeX code strings."""
         results = []
         for idx in range(len(self._solutions)):
-            things = self.get_items(solution_index=idx)
-            start = r"\begin{psgopartialboard}{(1,1)("
-            start += str(self.get_width(use_cursor=False,
-                                        solution_index=idx) + 1)
-            start += r","
-            start += str(self.get_height(use_cursor=False,
-                                         solution_index=idx) + 1)
-            start += r")}"
-            result = [start]
-            for (p_x, p_y), thing in things.items():
-                line = ' ' * 8
-                if isinstance(thing, dict):
-                    colour = thing['colour']
-                    number = thing['number']
-                else:
-                    colour = thing
-                    number = None
-                line += r"\stone"
-                if number is not None:
-                    line += r"[\marklb{" + number + r"}]"
-                line += r"{" + colour + r"}{"
-                # no 'i', should jump to j!
-                if p_x >= ord('i') - ord('a'):
-                    p_x += 1
-                line += chr(ord('a') + p_x)
-                line += r"}{"
-                line += str(p_y + 1)
-                line += r"}"
-                result.append(line)
-            result.append(r"\end{psgopartialboard}")
-            results.append('\n'.join(result))
-
+            objects = self.get_items(solution_index=idx)
+            results.append(self._objects_to_tex(objects, idx))
         return results
 
-    def get_width(self, use_cursor=True, solution_index=None):
+    # }}}1
+
+    # Geometry {{{1
+
+    def _get_dim(self, axis, use_cursor, idx):
+
+        maxkey = itemgetter(axis)
+
+        if self._board:
+            res = max(self._board.keys(), key=maxkey)[axis]
+        else:
+            res = 0
+
+        if idx is not None:
+            sol = self._solutions[idx]
+            if sol:
+                res = max(res, max(sol.keys(), key=maxkey)[axis])
+
+        if use_cursor:
+            res = max(res, self._cursor.point[axis])
+
+        res = max(_MIN_CORNER_SIZE, res + _MIN_BORDER)
+
+        return min(res, 19)
+
+    def get_width(self, use_cursor=True):
         """Return the width of used part of the board."""
-        if self._board:
-            width = max(self._board.keys())[0]
-        else:
-            width = 0
-        idx = solution_index or self._solution_idx
-        if idx is not None:
-            sol = self._solutions[idx]
-            if sol:
-                width = max(width, max(sol.keys())[0])
-        if use_cursor:
-            width = max(width, self._cursor_column)
-        width = max(4, width + 1)
-        return min(width, 19)
+        return self._get_dim(0, use_cursor, self._solution_idx)
 
-    def get_height(self, use_cursor=True, solution_index=None):
+    def get_height(self, use_cursor=True):
         """Return the height of used part of the board."""
-        if self._board:
-            height = max(self._board.keys(), key=itemgetter(1))[1]
-        else:
-            height = 0
-        idx = solution_index or self._solution_idx
-        if idx is not None:
-            sol = self._solutions[idx]
-            if sol:
-                height = max(height, max(sol.keys(), key=itemgetter(1))[1])
-        if use_cursor:
-            height = max(height, self._cursor_row)
-        height = max(4, height + 1)
-        return min(height, 19)
+        return self._get_dim(1, use_cursor, self._solution_idx)
 
-    def get_cursor(self):
-        """Return cursor coordinates."""
-        return (self._cursor_column, self._cursor_row)
+    # }}}1
 
-    def get_items(self, solution_index=None):
-        """Return board items."""
-        res = self._board.copy()
-        if solution_index is not None:
-            idx = solution_index
-        else:
-            idx = self._solution_idx
-        if idx is not None:
-            # Order matters, numbers should overwrite stones!
-            res.update(deepcopy(self._solutions[idx]))
-        return res
+    # Manipulate stones in main position {{{1
 
     def put(self, colour):
         """Put stone at cursor."""
-        point = (self._cursor_column, self._cursor_row)
-        self._board[point] = colour
-
-    def update_colour(self, colour):
-        """Update colour of the stone under the cursor,
-        if there is one."""
-        point = (self._cursor_column, self._cursor_row)
-        if point in self._board:
-            self.put(colour)
-
-    def update_solution_colour(self, colour):
-        """Update colour of the solution stone under the cursor,
-        if there is one."""
-        assert self._solution_idx is not None
-        sol = self._solutions[self._solution_idx]
-        point = (self._cursor_column, self._cursor_row)
-        if point in sol:
-            sol[point]['colour'] = colour
-
-    def swap_solution_colour(self):
-        """Swap colour of the solution stone under the cursor,
-        if there is one: white <-> black."""
-        assert self._solution_idx is not None
-        sol = self._solutions[self._solution_idx]
-        point = (self._cursor_column, self._cursor_row)
-        if point in sol:
-            stone = sol[point]
-            stone['colour'] = {'white': 'black',
-                               'black': 'white'}[stone['colour']]
+        self._board[self._cursor.point] = Stone(colour)
 
     def remove(self):
         """Remove stone at cursor."""
-        point = (self._cursor_column, self._cursor_row)
+        point = self._cursor.point
         if point in self._board:
             del self._board[point]
 
     def toggle(self, colour):
         """Put or remove stone at cursor."""
-        point = (self._cursor_column, self._cursor_row)
+        point = self._cursor.point
         if point in self._board:
             del self._board[point]
         else:
-            self._board[point] = colour
+            self._board[point] = Stone(colour)
+
+    def update_colour(self, colour):
+        """Update colour of the stone under the cursor,
+        if there is one."""
+        point = self._cursor.point
+        if point in self._board:
+            self._board[point].colour = colour
+
+    # }}}1
+
+    # Manipulate stones in solution branch {{{1
+
+    def put_sol(self, colour, number):
+        """Add a stone to solution."""
+        assert self._solution_idx is not None
+        point = self._cursor.point
+        self._solutions[self._solution_idx][point] = \
+            Stone(colour, label=number)
+
+    def remove_sol(self):
+        """Remove a stone from solution."""
+        assert self._solution_idx is not None
+        point = self._cursor.point
+        if point in self._solutions[self._solution_idx]:
+            del self._solutions[self._solution_idx][point]
+
+    def update_colour_sol(self, colour):
+        """Update colour of the solution stone under the cursor,
+        if there is one."""
+        assert self._solution_idx is not None
+        sol = self._solutions[self._solution_idx]
+        point = self._cursor.point
+        if point in sol:
+            sol[point].colour = colour
+
+    def flip_sol(self):
+        """Flip colour of the solution stone under the cursor,
+        if there is one: white <-> black."""
+        assert self._solution_idx is not None
+        sol = self._solutions[self._solution_idx]
+        point = self._cursor.point
+        if point in sol:
+            sol[point].flip()
+
+    # }}}1
+
+    # Solution branches management {{{1
 
     def get_solution(self):
         """Return current solution branch."""
@@ -248,16 +222,20 @@ class Board():
         """Switch to the previous solution."""
         self._shift_solution(-1)
 
-    def add_to_solution(self, colour, number):
-        """Add a stone to solution."""
-        assert self._solution_idx is not None
-        point = (self._cursor_column, self._cursor_row)
-        self._solutions[self._solution_idx][point] = \
-            {'number': number, 'colour': colour}
+    # }}}1
 
-    def remove_from_solution(self):
-        """Remove a stone from solution."""
-        assert self._solution_idx is not None
-        point = (self._cursor_column, self._cursor_row)
-        if point in self._solutions[self._solution_idx]:
-            del self._solutions[self._solution_idx][point]
+    # {{{1 Access to board items
+
+    def get_items(self, solution_index=None):
+        """Return board items."""
+        res = self._board.copy()
+        if solution_index is not None:
+            idx = solution_index
+        else:
+            idx = self._solution_idx
+        if idx is not None:
+            # Order matters, numbers should overwrite stones!
+            res.update(deepcopy(self._solutions[idx]))
+        return res
+
+    # }}}1

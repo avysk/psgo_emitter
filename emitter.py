@@ -71,7 +71,7 @@ def _board_keys_handler(board, state, evt):
 def _to_clipboard(board, renderer):
     win32clipboard.OpenClipboard()
     win32clipboard.EmptyClipboard()
-    win32clipboard.SetClipboardText(board.to_tex())
+    win32clipboard.SetClipboardText(board.to_tex(main_only=False))
     win32clipboard.CloseClipboard()
     renderer.info_flash("Position copied to clipboard.")
 
@@ -139,14 +139,14 @@ def _handle_solution_keys(board, state, evt):
         state.swap_colour()
     elif code == ord('s'):
         state.swap_colour()
-        board.update_solution_colour(state.colour())
+        board.update_colour_sol(state.colour())
     elif code == ord(' '):
-        board.swap_solution_colour()
+        board.flip_sol()
     elif ord('1') <= code <= ord('9'):
-        board.add_to_solution(state.colour(), chr(code))
+        board.put_sol(state.colour(), chr(code))
         state.swap_colour()
     elif code == ord('0'):
-        board.remove_from_solution()
+        board.remove_sol()
     else:
         return False
 
